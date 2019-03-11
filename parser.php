@@ -2,10 +2,10 @@
 
 # Parse HTML or other text formats based on regex map with named groups:
 # $map = [
-#   'pattern_name' => 'pattern',
-#	'pattern_name' => [
-#	  'parent' => 'pattern',
-#	  'child' => 'pattern'
+#   'pattern_name_1' => 'pattern',
+#   'pattern_name_2' => [
+#     'parent' => 'pattern',
+#     'child' => 'pattern'
 #   ]
 # ]
 
