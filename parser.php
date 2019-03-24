@@ -30,26 +30,59 @@ class parser {
 		return $found;
 	}
 
-	public function parse($html) {
+	private function parse_patterns($html, $patterns) {
 		$found = [];
 
-		foreach ( $this->map as $type => $pattern ) {
-			if ( is_array($pattern) && $pattern['parent'] && $pattern['child'] ) {
-				$parent_matches = null;
-				preg_match_all($pattern['parent'], $html, $parent_matches);
+		if ( is_array($patterns) ) {
 
-				foreach ( $parent_matches as $k => $lines ) if ( $k > 0 ) {
-					foreach ( $lines as $value ) {
-						$found[$type] = $this->parse_by_pattern($html, $pattern['child']);
+			if ( $patterns['iterate'] ) {
+				$parent = $this->parse_by_pattern($html, $patterns['iterate']);
+				unset($patterns['iterate']);
+
+				foreach ( $parent as $item ) {
+					$found[] = $this->parse_patterns( $item['content'], $patterns );
+				}
+				
+				return $found;
+			}
+
+			foreach ( $patterns as $key => $pattern ) {
+				if ( $key == 'any' ) {
+					foreach ( $pattern as $sub_pattern ) {
+						$r = $this->parse_patterns($html, $sub_pattern);
+						if ( $r ) {
+							$found = $r;
+							break;
+						}
+					}
+				}
+				else if ( $key == 'all' ) {
+					foreach ( $pattern as $sub_pattern ) {
+						$r = $this->parse_patterns($html, $sub_pattern);
+						if ( $r ) {
+							foreach ( $r as $row ) $found[] = $row;
+						}
+					}
+				}
+				else {
+					$r = $this->parse_patterns($html, $pattern);
+
+					if ( $r ) {
+						$found[$key] = $r;
 					}
 				}
 			}
-			else
-			{
-				$found[$type] = $this->parse_by_pattern($html, $pattern);
-			}
+		}
+		else {
+			$pattern = $patterns;
+			$found = $this->parse_by_pattern($html, $pattern);
 		}
 
+		return $found;
+	}
+
+	public function parse($html) {
+		$found = $this->parse_patterns($html, $this->map);
 		return $found;
 	}
 }

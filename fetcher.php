@@ -19,9 +19,9 @@ class fetcher {
 	protected $pattern_map = [];
 
 	public function __construct( $params ) {
-		$this->user_agents = explode("\n", file_get_contents($params['ua_file'] ? : __DIR__ . '/ua.desktop.txt'));
+		$this->user_agents = explode("\n", file_get_contents($params['ua_file'] ? : __DIR__ . '/ua.desktop.gen.txt'));
 		if ( $params['proxies'] ) $this->proxies = $params['proxies'];
-		if ( $params['resolve'] ) $this->proxies = $params['resolve'];
+		if ( $params['resolve'] ) $this->resolve = $params['resolve'];
 
 		if ( $params['pattern_map'] ) $this->pattern_map = $params['pattern_map'];
 		else throw new exception('At least one pattern should be specified in config ');
@@ -40,10 +40,10 @@ class fetcher {
 
 		$host = parse_url($url, PHP_URL_HOST);
 		$port = parse_url($url, PHP_URL_SCHEME) == 'https' ? '443' : '80';
-		
-		$ips = $this->resolve;
-		$ip = $ips[array_rand($ips)];
 
+		if ( !$ips = $this->resolve[ $host ] ) return;
+		
+		$ip = $ips[array_rand($ips)];
 		return "{$host}:{$port}:{$ip}";
 	}
 
@@ -57,12 +57,19 @@ class fetcher {
 		];
 
 		if ( $proxy = $this->get_proxy() ) $options[CURLOPT_PROXY] = $proxy;
+
 		if ( $resolve = $this->get_resolving_ips( $url ) ) $options[CURLOPT_RESOLVE] = [$resolve];
+
 		if ( $ua = $this->get_user_agent() ) $options[CURLOPT_USERAGENT] = $ua;
 
 		curl_setopt_array($c, $options);
 		$html = curl_exec($c);
 		$request = curl_getinfo($c);
+		
+		$request['proxy'] = $proxy;
+		$request['resolve'] = $resolve;
+		$request['user_agent'] = $ua;
+
 		curl_close($c);
 
 		$parser = new parser( $this->pattern_map );
