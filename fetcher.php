@@ -1,22 +1,25 @@
 <?php
 
-# Get html, parse content based on regular expressions and return structured results
-# $f = new fetcher( [
-#	'ua_file' => 'ua.txt', # name of the file with user agents (each on a separate line)
-#	'proxies' => ['1.1.1.1:123'], # array of proxies in host:port format
-#	'resolve' => ['domain' => ['1.1.1.1', '2.2.2.2']], # custom ips to resolve domain into
-#	'pattern_map' => [ 'test' => '/w+/misu' ], # patterns map (see parser.php)
-# ] )
-#
-
 namespace webminer;
 require 'parser.php';
 
-class fetcher {
-	protected $user_agents = [];
-	protected $proxies = [];
-	protected $resolve = [];
-	protected $pattern_map = [];
+/**
+ *
+ * Get html, parse content based on regular expressions and return structured results
+ * $f = new fetcher( [
+ *    'ua_file' => 'ua.txt', # name of the file with user agents (each on a separate line)
+ *    'proxies' => ['1.1.1.1:123'], # array of proxies in host:port format
+ *    'resolve' => ['domain' => ['1.1.1.1', '2.2.2.2']], # custom ips to resolve domain into
+ *    'pattern_map' => [ 'test' => '/w+/misu' ], # patterns map (see parser.php)
+ * ] )
+ *
+ */
+class fetcher
+{
+    protected $user_agents = [];
+    protected $proxies = [];
+    protected $resolve = [];
+    protected $pattern_map = [];
 
 	public function __construct( $params ) {
 		$this->user_agents = explode("\n", file_get_contents($params['ua_file'] ? : __DIR__ . '/ua.desktop.gen.txt'));
@@ -24,7 +27,7 @@ class fetcher {
 		if ( $params['resolve'] ) $this->resolve = $params['resolve'];
 
 		if ( $params['pattern_map'] ) $this->pattern_map = $params['pattern_map'];
-		else throw new exception('At least one pattern should be specified in config ');
+		else throw new \Exception('At least one pattern should be specified in config ');
 	}
 
 	protected function get_user_agent() {
